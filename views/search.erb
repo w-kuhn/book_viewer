@@ -1,0 +1,33 @@
+<h2 class="content-subhead">Search</h2>
+
+<form action="/search" method="get">
+  <input name="query" value="<%= params[:query] %>">
+  <button type="submit">Search</button>
+</form>
+
+<% if params[:query] %>
+  <% if @results.empty? %>
+    <%="Sorry, no matches were found."%>
+  <% else %>
+    <h2 class="content-subhead">Results for "<%= params[:query] %>"</h2>
+      <ul>
+        <% @chapters.sort_by { |chapter| chapter.scan(/[0-9]+/)[0].to_i }.each do |chapter_filename| %>
+          <% chapter_number = chapter_filename.scan(/[0-9]+/)[0].to_i %>
+          <% next unless @results.has_key? chapter_number %>
+          <li>
+            <h4><%=@toc[chapter_number - 1]%></h4>
+            <ul>
+              <% File.read("data/#{chapter_filename}")
+                  .split(/\n{2}/)
+                  .each_with_index do |text, index|%>
+                  <% next unless text.include? params[:query]%>
+                <li>
+                  <a href="/chapters/<%=chapter_number%>#paragraph<%=index%>" class="results-menu-link"><%=highlight(text, params[:query])%></a>
+                </li>
+              <% end %>
+            </ul>
+          </li>
+        <% end %>
+      </ul>
+  <% end %>
+<% end %>
